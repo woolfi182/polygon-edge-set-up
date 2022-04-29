@@ -1,0 +1,5 @@
+services:
+  polygon-edge:
+    image: 0xpolygon/polygon-edge
+    volumes:
+      - ./volumes:/data/chain

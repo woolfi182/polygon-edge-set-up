@@ -1,0 +1,17 @@
+{
+    "data_dir": "/data/chain",
+    "chain_config": "/data/chain/genesis.json",
+    "block_time_s": 15,
+    "jsonrpc_addr": "0.0.0.0:10002",
+    "grpc_addr": "0.0.0.0:10000",
+    "seal": true,
+    "network": {
+        "libp2p_addr": "0.0.0.0:10001"
+    },
+    "txpool": {
+        "price_limit": 0
+    },
+    "telemetry": {
+        "prometheus_addr": "0.0.0.0:9545"
+    }
+}
