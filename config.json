@@ -1,6 +1,6 @@
 {
-    "data_dir": "/data/chain",
-    "chain_config": "/data/chain/genesis.json",
+    "data_dir": "/data",
+    "chain_config": "/data/genesis.json",
     "block_time_s": 15,
     "jsonrpc_addr": "127.0.0.1:10002",
     "grpc_addr": "127.0.0.1:10000",
@@ -12,6 +12,6 @@
         "price_limit": 0
     },
     "telemetry": {
-        "prometheus_addr": "127.0.0.1:9545"
+        "prometheus_addr": "127.0.0.1:10003"
     }
 }

@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "build": "node index.js",
-    "start": "docker-compose run polygon-edge server --config /data/chain/config.json && docker-compose down"
+    "start": "docker-compose -f docker-compose.nodes.yaml up && docker-compose -f docker-compose.nodes.yaml down"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "js-yaml": "^4.1.0",
     "shelljs": "^0.8.5"
   }
 }
