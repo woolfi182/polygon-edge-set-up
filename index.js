@@ -96,11 +96,6 @@ shell.exec(`docker-compose down`, {silent: true});
 console.log('\nNew docker-compose.nodes.yaml creation...');
 const dcFileName = 'docker-compose.nodes.yaml'
 const dcContent = {
-    networks: {
-        'polygon-edge-chain': {
-            'driver':'bridge'
-        }
-    },
     services: {}
 };
 // create docker-compose file for nodes
