@@ -108,15 +108,7 @@ for(let i = 1; i <= NODES_NUMBER; i+=1) {
     dcContent.services[`node-${i}`] = {
         image: '0xpolygon/polygon-edge',
         command: `server --config /data/chain-${i}/config.json`,
-        networks: [
-            'polygon-edge-chain'
-        ],
-        ports: [
-            `${i}0000:${i}0000`,
-            `${i}0001:${i}0001`,
-            `${i}0002:${i}0002`,
-            `${i}0003:${i}0003`,
-        ],
+        network_mode: 'host',
         volumes:[
             `./volumes:/data`
         ]
