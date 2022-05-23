@@ -3,8 +3,8 @@ const { writeFileSync }= require('fs');
 const yaml = require('js-yaml');
 const config = require('./config.json');
 
-const NODES_NUMBER = 4;
-const BOOTNODES_NUMBER = 2;
+const NODES_NUMBER = 2;
+const BOOTNODES_NUMBER = 1;
 const NODE_PREFIX = 'chain';
 const mnemonic = 'snap weird dice buyer steak tool victory cactus spell mansion evoke document'
 
@@ -25,7 +25,7 @@ if(BOOTNODES_NUMBER >= NODES_NUMBER) {
 const runner = 'docker-compose run polygon-edge';
 const initNodeCommand = `secrets init --json --data-dir`;
 
-console.log('Ccreate secrets for nodes\n');
+console.log('Create secrets for nodes\n');
 // Init nodes
 const initData = {};
 for(let i = 1; i <= NODES_NUMBER; i++) {
@@ -37,30 +37,29 @@ for(let i = 1; i <= NODES_NUMBER; i++) {
     const configFileData = {
         ...config,
         data_dir: dirName,
-        jsonrpc_addr: correctPort(config.jsonrpc_addr,i),
-        grpc_addr: correctPort(config.grpc_addr,i),
+        jsonrpc_addr: config.jsonrpc_addr,
+        grpc_addr: config.grpc_addr,
         network: {
             ...config.network,
-            libp2p_addr: correctPort(config.network.libp2p_addr,i),
+            libp2p_addr: config.network.libp2p_addr,
         },
         telemetry: {
             ...config.telemetry,
-            prometheus_addr: correctPort(config.telemetry.prometheus_addr,i),
+            prometheus_addr: config.telemetry.prometheus_addr,
         },
     };
     writeFileSync(`./volumes/chain-${i}/config.json`, JSON.stringify(configFileData));
 }
 
 // set bootnodes
-const HOST = '127.0.0.1';
-const PORT_POSTFIX = '0001';
+const HOST = '172.16.238';
 
 const bootnodes = [];
 
 for(let i = 1; i <= BOOTNODES_NUMBER; i++) {
     const bootnodeId = initData[`${NODE_PREFIX}-${i}`].node_id;
-    const port = `${i}${PORT_POSTFIX}`;
-    const bootnode = `/ip4/${HOST}/tcp/${port}/p2p/${bootnodeId}`;
+    const port = '10001'
+    const bootnode = `/ip4/${HOST}.${i+1}/tcp/${port}/p2p/${bootnodeId}`;
     const data = {
         bootnode,
         publicKey: initData[`${NODE_PREFIX}-${i}`].address
@@ -70,9 +69,10 @@ for(let i = 1; i <= BOOTNODES_NUMBER; i++) {
 
 // generate genesis with premined accounts
 const genesisCommand = `genesis \\
-    --consensus ibft \\
+    --consensus=ibft \\
+    ${Object.values(initData).map(node => `--ibft-validator=${node.address} \\`).join('\n    ')}
     ${bootnodes.map(node=> 
-        `--bootnode ${node.bootnode} \\\n    --ibft-validator= ${node.publicKey} \\`).join('\n    ')
+        `--bootnode=${node.bootnode} \\`).join('\n    ')
     }
     --dir ${config.data_dir}/genesis.json \\
     ${preminded.map(add =>
@@ -96,6 +96,19 @@ shell.exec(`docker-compose down`, {silent: true});
 console.log('\nNew docker-compose.nodes.yaml creation...');
 const dcFileName = 'docker-compose.nodes.yaml'
 const dcContent = {
+    networks: {
+        nw:{
+            ipam:{
+                driver: "default",
+                config:[
+                    {
+                        subnet: "172.16.238.0/24",
+                        gateway: "172.16.238.1"
+                    }
+                ]
+            }
+        }
+    },
     services: {}
 };
 // create docker-compose file for nodes
@@ -103,7 +116,17 @@ for(let i = 1; i <= NODES_NUMBER; i+=1) {
     dcContent.services[`node-${i}`] = {
         image: '0xpolygon/polygon-edge',
         command: `server --config /data/chain-${i}/config.json`,
-        network_mode: 'host',
+        networks: {
+            nw: {
+                ipv4_address: `${HOST}.${i+1}`
+            }
+        },
+        ports: [
+            `${i}0000:10000`,
+            `${i}0001:10001`,
+            `${i}0002:10002`,
+            `${i}0003:10003`
+        ],
         volumes:[
             `./volumes:/data`
         ]
